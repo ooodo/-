@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>اختبار القبول - معهد ظلان للبرمجة</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      font-family: 'Cairo', Arial, sans-serif;
+      margin: 0; padding: 0;
+      background: #f5f6fa;
+      min-height: 100vh;
+      color: #222;
+    }
+    header {
+      background: #27344b;
+      color: #fff;
+      padding: 1rem 2rem;
+      text-align: center;
+      font-size: 1.7rem;
+      letter-spacing: 1px;
+      font-weight: bold;
+      border-bottom: 3px solid #32c2b9;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      background: #e6e6ea;
+      padding: 0.5rem 0;
+    }
+    nav button {
+      background: #fff;
+      color: #27344b;
+      border: 1px solid #32c2b955;
+      border-radius: 5px;
+      padding: 0.5rem 1.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    nav button.active, nav button:hover {
+      background: #32c2b9;
+      color: #fff;
+    }
+    #dashboardNav { display: none; }
+    main {
+      max-width: 700px;
+      margin: 2rem auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px #0001;
+      padding: 2rem 1.5rem;
+    }
+    .hidden { display: none; }
+    .center { text-align: center; }
+    .btn {
+      background: #32c2b9;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.7rem 2rem;
+      font-size: 1.1rem;
+      cursor: pointer;
+      margin-top: 1rem;
+      min-width: 120px;
+      transition: background .2s;
+    }
+    .btn[disabled] {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .question-box {
+      margin-bottom: 1.5rem;
+    }
+    .options label {
+      display: block;
+      background: #f1f1f1;
+      border-radius: 5px;
+      margin: 0.5rem 0;
+      padding: 0.7rem;
+      cursor: pointer;
+      border: 1.5px solid #eee;
+      transition: background 0.2s, border 0.2s;
+    }
+    .options input[type="radio"] { display: none; }
+    .options label.selected {
+      background: #d2f3ef;
+      border: 2px solid #32c2b9;
+    }
+    .result-analysis {
+      background: #f0f8ff;
+      border: 1px solid #b5d6f6;
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+    /* شهادة متطورة */
+    .certificate-container {
+      background: linear-gradient(135deg, #e0faf8 55%, #fff 100%);
+      border: 4px double #32c2b9;
+      border-radius: 18px;
+      padding: 2rem 1rem;
+      margin: 1.5rem auto;
+      max-width: 490px;
+      box-shadow: 0 4px 18px #32c2b930;
+      position: relative;
+      overflow: hidden;
+    }
+    .certificate-container:before, .certificate-container:after {
+      content: "";
+      position: absolute;
+      width: 90px; height: 90px;
+      background: rgba(50,194,185,0.08);
+      border-radius: 50%;
+      z-index: 0;
+    }
+    .certificate-container:before { top: -40px; left: -40px; }
+    .certificate-container:after { bottom: -50px; right: -50px; }
+    .certificate-header {
+      color: #27344b;
+      font-size: 2rem;
+      margin-bottom: 0.8rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-shadow: 0 2px 7px #32c2b944;
+      z-index: 1;
+      position: relative;
+    }
+    .certificate-seal {
+      width: 60px; height: 60px;
+      background: radial-gradient(circle at 30% 30%, #ffe066, #f7b731 80%);
+      border-radius: 50%;
+      border: 4px solid #32c2b9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      color: #27344b;
+      font-weight: bold;
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      box-shadow: 0 2px 14px #32c2b93a;
+      z-index: 2;
+    }
+    .certificate-content {
+      margin: 1.2rem 0 0.6rem 0;
+      font-size: 1.15rem;
+      z-index: 1;
+      position: relative;
+    }
+    .certificate-institute {
+      margin: 1.5rem 0 0.5rem 0;
+      color: #32c2b9;
+      font-weight: bold;
+      font-size: 1.25rem;
+      letter-spacing: 1px;
+      z-index: 1;
+      position: relative;
+    }
+    .certificate-footer {
+      margin-top: 1.8rem;
+      font-weight: bold;
+      color: #27344b;
+      z-index: 1;
+      position: relative;
+    }
+    .dashboard-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    .dashboard-table th, .dashboard-table td {
+      padding: 0.6rem;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+    .dashboard-table th {
+      background: #e9eff8;
+      color: #27344b;
+      font-weight: bold;
+    }
+    .dashboard-table td {
+      background: #fff;
+    }
+    .dashboard-section {
+      margin-bottom: 2rem;
+    }
+    .question-admin {
+      background: #fff9ea;
+      border-radius: 8px;
+      padding: 1.5rem 1rem;
+      margin-bottom: 2rem;
+      border: 1px solid #e3d8b5;
+    }
+    .password-box {
+      background: #f8f8fa;
+      border-radius: 10px;
+      border: 1.5px solid #32c2b933;
+      padding: 2rem 1rem;
+      max-width: 340px;
+      margin: 1.5rem auto 0 auto;
+      text-align: center;
+      box-shadow: 0 2px 10px #32c2b911;
+    }
+    .password-box input {
+      padding: 0.5rem 1rem;
+      font-size: 1.1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin: 0.4rem 0;
+      width: 90%;
+      text-align: center;
+      background: #f5f5f5;
+    }
+    .password-box .btn {
+      margin-top: 0.7rem;
+      width: 80%;
+    }
+    .password-error {
+      color: #b22;
+      margin-top: 0.6rem;
+      font-weight: bold;
+      font-size: 1.05rem;
+    }
+    @media (max-width: 600px) {
+      main { padding: 1rem 0.3rem; }
+      .dashboard-table th, .dashboard-table td {
+        font-size: 0.92em;
+        padding: 0.3rem;
+      }
+      .certificate-container { padding: 1.2rem 0.3rem; }
+      .certificate-header { font-size: 1.25rem; }
+      .certificate-institute { font-size: 1.08rem; }
+      .certificate-seal { width: 40px; height: 40px; font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>معهد ظلان للبرمجة</header>
+  <nav>
+    <button id="homeNav" class="active">الرئيسية</button>
+    <button id="examNav">اختبار القبول</button>
+    <button id="dashboardNav">لوحة التحكم</button>
+  </nav>
+  <main>
+    <!-- الصفحة الرئيسية -->
+    <section id="homeSection">
+      <h1 class="center">اختبار القبول لمعهد ظلان للبرمجة</h1>
+      <p>
+        أهلاً بك في منصة اختبار القبول الخاصة بمعهد <b>ظلان للبرمجة</b>!<br>
+        يهدف هذا الاختبار إلى تقييم مستواك في المفاهيم العامة والحسابية ومهارات التفكير المنطقي الضرورية للانضمام إلى المعهد.<br><br>
+        <b>ميزات الاختبار:</b>
+        <ul>
+          <li>أسئلة اختيار من متعدد في عدة مجالات.</li>
+          <li>تحليل فوري للأداء بعد إنهاء الاختبار.</li>
+          <li>شهادة إلكترونية فاخرة باسمك وتاريخ اجتيازك للاختبار، في حال النجاح.</li>
+          <li>واجهة سهلة وسريعة ومتجاوبة مع جميع الأجهزة.</li>
+        </ul>
+      </p>
+      <div class="center">
+        <button class="btn" onclick="goToExam()">ابدأ اختبار القبول</button>
+      </div>
+      <div class="center" style="margin-top:2rem;">
+        <button class="btn" style="background:#27344b;" onclick="showDashboardLogin()">دخول لوحة التحكم</button>
+      </div>
+    </section>
+
+    <!-- قسم الاختبار -->
+    <section id="examSection" class="hidden">
+      <div id="examStartBox">
+        <h2 class="center">اختبار القبول</h2>
+        <div class="center">
+          <input id="userNameInput" type="text" placeholder="ادخل اسمك الكامل" style="font-size:1rem;padding:0.5rem;max-width:260px;width:90%;margin-bottom:1rem;border-radius:6px;border:1px solid #ccc;">
+          <br>
+          <button class="btn" onclick="startExam()">بدء الاختبار</button>
+        </div>
+      </div>
+      <div id="examBox" class="hidden">
+        <div class="question-box">
+          <div id="questionText"></div>
+          <form id="optionsForm" class="options"></form>
+        </div>
+        <div class="center">
+          <button class="btn" id="nextBtn" onclick="nextQuestion()" disabled>التالي</button>
+        </div>
+        <div class="center" style="margin-top:0.7rem;">
+          <span id="progressSpan"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- قسم النتيجة و الشهادة -->
+    <section id="resultSection" class="hidden">
+      <h2 class="center">نتيجتك في اختبار القبول</h2>
+      <div class="center" style="font-size:1.5rem;margin:1rem 0;">
+        <span id="scoreSpan"></span>
+      </div>
+      <div class="result-analysis" id="analysisDiv"></div>
+      <section id="certificateSection" class="hidden" style="margin-top:2rem;">
+        <div class="certificate-container" id="certificateArea">
+          <div class="certificate-seal" title="معهد ظلان">ظ</div>
+          <div class="certificate-header">شهادة اجتياز اختبار القبول</div>
+          <div class="certificate-content">
+            تُمنح هذه الشهادة للمتقدم:<br>
+            <b id="certName"></b>
+            <br>
+            وذلك لاجتيازه اختبار القبول الإلكتروني لمعهد ظلان للبرمجة بتاريخ:<br>
+            <b id="certDate"></b>
+            <br><br>
+            <span>النتيجة: <b id="certScore"></b></span>
+          </div>
+          <div class="certificate-institute">
+            معهد ظلان للبرمجة
+          </div>
+          <div class="certificate-footer">
+            <span>مع أطيب التمنيات بالتوفيق والنجاح!</span>
+          </div>
+        </div>
+        <div class="center" style="margin:1.2rem 0;">
+          <button class="btn" onclick="downloadCertificate()">تحميل الشهادة PDF</button>
+        </div>
+      </section>
+      <div class="center">
+        <button class="btn" onclick="resetExam()">العودة للرئيسية</button>
+      </div>
+    </section>
+
+    <!-- لوحة التحكم: تظهر فقط بعد كلمة السر -->
+    <section id="dashboardSection" class="hidden">
+      <h2 class="center">لوحة تحكم معهد ظلان</h2>
+      <div class="dashboard-section">
+        <h3>نتائج المشاركين</h3>
+        <table class="dashboard-table" id="resultsTable">
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th>النتيجة</th>
+              <th>تاريخ الاختبار</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="dashboard-section">
+        <h3>إدارة الأسئلة</h3>
+        <div class="question-admin">
+          <form id="adminForm">
+            <input type="hidden" id="editIndex" value="">
+            <div>
+              <label>نص السؤال:</label>
+              <input type="text" id="adminQuestion" required style="width:95%;padding:0.5rem;border-radius:6px;border:1px solid #ccc;">
+            </div>
+            <div>
+              <label>الخيارات (كل خيار في سطر):</label>
+              <textarea id="adminOptions" required rows="3" style="width:95%;padding:0.5rem;border-radius:6px;border:1px solid #ccc;"></textarea>
+            </div>
+            <div>
+              <label>رقم الخيار الصحيح (1 أو 2 أو ...):</label>
+              <input type="number" id="adminAnswer" required min="1" style="width:80px;padding:0.4rem;border-radius:6px;border:1px solid #ccc;">
+            </div>
+            <div>
+              <button class="btn" type="submit" id="adminSaveBtn">إضافة سؤال</button>
+              <button class="btn" type="button" onclick="resetAdminForm()" style="background:#aaa;color:#fff;">إلغاء</button>
+            </div>
+          </form>
+        </div>
+        <table class="dashboard-table" id="questionsTable">
+          <thead>
+            <tr>
+              <th>السؤال</th>
+              <th>الخيارات</th>
+              <th>الصحيح</th>
+              <th>إجراءات</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- نافذة كلمة سر لوحة التحكم -->
+    <section id="dashboardLoginSection" class="hidden">
+      <div class="password-box">
+        <h3>دخول لوحة التحكم</h3>
+        <input type="password" id="dashboardPassword" placeholder="ادخل كلمة السر" autocomplete="off">
+        <br>
+        <button class="btn" onclick="checkDashboardPassword()">دخول</button>
+        <div id="passwordError" class="password-error"></div>
+        <button class="btn" onclick="backToHome()" style="background:#aaa;color:#fff;margin-top:1.2rem;">رجوع</button>
+      </div>
+    </section>
+  </main>
+  <script>
+    // ========== البيانات الافتراضية ==========
+    const defaultQuestions = [
+      {
+        q: 'ما هي عاصمة المملكة العربية السعودية؟',
+        options: ['الرياض', 'جدة', 'مكة', 'الدمام'],
+        answer: 0
+      },
+      {
+        q: 'من هو مخترع المصباح الكهربائي؟',
+        options: ['توماس إديسون', 'آينشتاين', 'إسحاق نيوتن', 'غراهام بيل'],
+        answer: 0
+      },
+      {
+        q: 'ما هو الكوكب الأحمر؟',
+        options: ['المشتري', 'الزهرة', 'المريخ', 'زحل'],
+        answer: 2
+      },
+      {
+        q: 'كم عدد قارات العالم؟',
+        options: ['5', '6', '7', '8'],
+        answer: 2
+      },
+      {
+        q: 'ما هي وحدة قياس شدة التيار الكهربائي؟',
+        options: ['الواط', 'الأمبير', 'الفولت', 'الأوم'],
+        answer: 1
+      }
+    ];
+
+    // ========== عناصر التنقل ==========
+    const homeSection = document.getElementById('homeSection');
+    const examSection = document.getElementById('examSection');
+    const resultSection = document.getElementById('resultSection');
+    const dashboardSection = document.getElementById('dashboardSection');
+    const dashboardLoginSection = document.getElementById('dashboardLoginSection');
+    const homeNav = document.getElementById('homeNav');
+    const examNav = document.getElementById('examNav');
+    const dashboardNav = document.getElementById('dashboardNav');
+    const certificateSection = document.getElementById('certificateSection');
+    let dashboardUnlocked = false;
+
+    function showSection(sec) {
+      [homeSection, examSection, resultSection, dashboardSection, dashboardLoginSection].forEach(s => s.classList.add('hidden'));
+      sec.classList.remove('hidden');
+      [homeNav, examNav, dashboardNav].forEach(b => b.classList.remove('active'));
+      if (sec === homeSection) homeNav.classList.add('active');
+      if (sec === examSection) examNav.classList.add('active');
+      if (sec === dashboardSection) dashboardNav.classList.add('active');
+    }
+    homeNav.onclick = () => { showSection(homeSection); };
+    examNav.onclick = () => { showSection(examSection); };
+    dashboardNav.onclick = () => {
+      if (dashboardUnlocked) {
+        showSection(dashboardSection);
+        renderResultsTable();
+        renderQuestionsTable();
+      }
+    };
+
+    function goToExam() { showSection(examSection); }
+
+    // ========== كلمة سر لوحة التحكم ==========
+    function showDashboardLogin() {
+      showSection(dashboardLoginSection);
+      document.getElementById('dashboardPassword').value = '';
+      document.getElementById('passwordError').textContent = '';
+    }
+    function checkDashboardPassword() {
+      const pw = document.getElementById('dashboardPassword').value;
+      if (pw === 'ZillT') {
+        dashboardUnlocked = true;
+        dashboardNav.style.display = '';
+        showSection(dashboardSection);
+        renderResultsTable();
+        renderQuestionsTable();
+      } else {
+        document.getElementById('passwordError').textContent = 'كلمة السر غير صحيحة!';
+      }
+    }
+    function backToHome() {
+      showSection(homeSection);
+    }
+    // عند تحميل الصفحة: أخفي زر لوحة التحكم
+    dashboardNav.style.display = 'none';
+
+    // ========== إدارة الأسئلة (محليًا) ==========
+    function getQuestions() {
+      return JSON.parse(localStorage.getItem('questions') || 'null') || defaultQuestions;
+    }
+    function setQuestions(qs) {
+      localStorage.setItem('questions', JSON.stringify(qs));
+    }
+    // ========== إدارة النتائج ==========
+    function getResults() {
+      return JSON.parse(localStorage.getItem('results') || '[]');
+    }
+    function setResults(results) {
+      localStorage.setItem('results', JSON.stringify(results));
+    }
+
+    // ========== منطق الاختبار ==========
+    let examUserName = '';
+    let examQuestions = [];
+    let examAnswers = [];
+    let examIndex = 0;
+    let examScore = 0;
+
+    function startExam() {
+      const input = document.getElementById('userNameInput');
+      const name = input.value.trim();
+      if (!name) { input.style.borderColor = 'red'; return; }
+      input.style.borderColor = '#ccc';
+      examUserName = name;
+      examQuestions = getQuestions();
+      examAnswers = [];
+      examIndex = 0;
+      examScore = 0;
+      document.getElementById('examStartBox').classList.add('hidden');
+      document.getElementById('examBox').classList.remove('hidden');
+      showQuestion();
+    }
+    function showQuestion() {
+      const q = examQuestions[examIndex];
+      document.getElementById('questionText').textContent = q.q;
+      const optionsForm = document.getElementById('optionsForm');
+      optionsForm.innerHTML = '';
+      q.options.forEach((op, i) => {
+        const label = document.createElement('label');
+        label.textContent = op;
+        label.onclick = () => {
+          [...optionsForm.querySelectorAll('label')].forEach(l => l.classList.remove('selected'));
+          label.classList.add('selected');
+          document.getElementById('nextBtn').disabled = false;
+        };
+        const input = document.createElement('input');
+        input.type = 'radio';
+        input.name = 'option';
+        input.value = i;
+        label.prepend(input);
+        optionsForm.appendChild(label);
+      });
+      document.getElementById('nextBtn').disabled = true;
+      document.getElementById('progressSpan').textContent = `سؤال ${examIndex + 1} من ${examQuestions.length}`;
+    }
+    function nextQuestion() {
+      const selected = [...document.querySelectorAll('#optionsForm input')].find(el => el.checked || el.parentElement.classList.contains('selected'));
+      if (!selected) return;
+      examAnswers[examIndex] = +selected.value;
+      examIndex++;
+      if (examIndex < examQuestions.length) {
+        showQuestion();
+      } else {
+        finishExam();
+      }
+    }
+    function finishExam() {
+      examScore = 0;
+      for (let i = 0; i < examQuestions.length; i++) {
+        if (examAnswers[i] === examQuestions[i].answer) examScore++;
+      }
+      // حفظ النتيجة
+      const resultObj = {
+        name: examUserName,
+        score: `${examScore} / ${examQuestions.length}`,
+        date: new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }),
+        rawScore: examScore,
+        total: examQuestions.length
+      };
+      const results = getResults();
+      results.push(resultObj);
+      setResults(results);
+      // عرض النتيجة
+      showSection(resultSection);
+      document.getElementById('scoreSpan').textContent = `${examScore} / ${examQuestions.length}`;
+      showAnalysis();
+      // إذا نجح مباشرة تظهر الشهادة
+      if (examScore >= Math.ceil(examQuestions.length * 0.6)) {
+        showCertificate();
+      } else {
+        certificateSection.classList.add('hidden');
+      }
+      // reset exam for next time
+      document.getElementById('examStartBox').classList.remove('hidden');
+      document.getElementById('examBox').classList.add('hidden');
+      document.getElementById('userNameInput').value = '';
+    }
+    function showAnalysis() {
+      let txt = '';
+      if (examScore === examQuestions.length) {
+        txt = 'نتيجة ممتازة! لقد أجبت على جميع الأسئلة بشكل صحيح. نرحب بك في معهد ظلان!';
+      } else if (examScore >= Math.ceil(examQuestions.length * 0.8)) {
+        txt = 'نتيجة رائعة! لديك معرفة قوية تناسب مسار البرمجة.';
+      } else if (examScore >= Math.ceil(examQuestions.length * 0.6)) {
+        txt = 'نتيجة جيدة. لديك الأساسيات المطلوبة للبدء، ونشجعك على التطوير المستمر.';
+      } else {
+        txt = 'تحتاج إلى مزيد من الممارسة. لا تيأس، أعد المحاولة وطور من قدراتك!';
+      }
+      document.getElementById('analysisDiv').textContent = txt;
+    }
+    function resetExam() {
+      showSection(homeSection);
+      certificateSection.classList.add('hidden');
+    }
+
+    // ========== الشهادة الإلكترونية ==========
+    function showCertificate() {
+      certificateSection.classList.remove('hidden');
+      document.getElementById('certName').textContent = examUserName;
+      document.getElementById('certDate').textContent = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+      document.getElementById('certScore').textContent = `${examScore} / ${examQuestions.length}`;
+    }
+    function downloadCertificate() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a5'
+      });
+      // خلفية زخرفية بسيطة
+      doc.setFillColor(224, 250, 248);
+      doc.rect(0, 0, 210, 148, 'F');
+      // إطار
+      doc.setDrawColor(50, 194, 185);
+      doc.setLineWidth(2.5);
+      doc.rect(9, 8, 192, 132, 'S');
+      doc.setLineWidth(0.5);
+      doc.setDrawColor(120, 170, 180);
+      doc.rect(13, 12, 184, 124, 'S');
+      // ختم المعهد
+      doc.setFillColor(255, 224, 102);
+      doc.circle(177, 30, 14, 'F');
+      doc.setDrawColor(50, 194, 185);
+      doc.setLineWidth(2);
+      doc.circle(177, 30, 14, 'S');
+      doc.setFont("Cairo","bold");
+      doc.setTextColor(39, 52, 75);
+      doc.setFontSize(24);
+      doc.text("ظ", 177, 36, {align: "center"});
+      // عنوان الشهادة
+      doc.setFontSize(22);
+      doc.setTextColor(39, 52, 75);
+      doc.text("شهادة اجتياز اختبار القبول", 105, 38, {align: "center"});
+      // نص الشهادة
+      doc.setFontSize(13);
+      doc.setTextColor(39, 52, 75);
+      doc.text(`تُمنح هذه الشهادة للمتقدم:`, 105, 54, {align: "center"});
+      doc.setFont("Cairo","bold");
+      doc.setFontSize(15);
+      doc.text(examUserName, 105, 65, {align: "center"});
+      doc.setFont("Cairo","normal");
+      doc.setFontSize(12.5);
+      doc.text(`لاجتيازه اختبار القبول الإلكتروني لمعهد ظلان للبرمجة بتاريخ:`, 105, 77, {align: "center"});
+      doc.setFont("Cairo","bold");
+      doc.text(new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }), 105, 87, {align: "center"});
+      doc.setFont("Cairo","normal");
+      doc.setFontSize(14);
+      doc.setTextColor(50,194,185);
+      doc.text(`النتيجة: ${examScore} / ${examQuestions.length}`, 105, 102, {align: "center"});
+      doc.setFontSize(13);
+      doc.setTextColor(39, 52, 75);
+      doc.text("معهد ظلان للبرمجة", 105, 120, {align: "center"});
+      doc.setFontSize(10);
+      doc.setTextColor(100, 120, 140);
+      doc.text("نتمنى لك التوفيق والنجاح!", 105, 130, {align: "center"});
+      doc.save(`شهادة_اجتياز_اختبار_ظلان_${examUserName.replace(/ /g,"_")}.pdf`);
+    }
+
+    // ========== لوحة التحكم ==========
+    function renderResultsTable() {
+      const tb = document.querySelector('#resultsTable tbody');
+      tb.innerHTML = '';
+      const results = getResults();
+      if (!results.length) {
+        tb.innerHTML = `<tr><td colspan="3">لا توجد نتائج بعد</td></tr>`;
+        return;
+      }
+      results.slice().reverse().forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${r.name}</td><td>${r.score}</td><td>${r.date}</td>`;
+        tb.appendChild(tr);
+      });
+    }
+    // إدارة الأسئلة
+    function renderQuestionsTable() {
+      const tb = document.querySelector('#questionsTable tbody');
+      tb.innerHTML = '';
+      const qs = getQuestions();
+      if (!qs.length) {
+        tb.innerHTML = `<tr><td colspan="4">لا توجد أسئلة</td></tr>`;
+        return;
+      }
+      qs.forEach((q, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${q.q}</td>
+          <td>${q.options.map((op,i)=>`${i+1}- ${op}`).join('<br>')}</td>
+          <td>${q.options[q.answer]}</td>
+          <td>
+            <button class="btn" style="background:#ffc107;color:#222;font-size:0.9em;padding:0.4em 1.2em;" onclick="editQuestion(${idx})">تعديل</button>
+            <button class="btn" style="background:#d9534f;font-size:0.9em;padding:0.4em 1.2em;" onclick="deleteQuestion(${idx})">حذف</button>
+          </td>
+        `;
+        tb.appendChild(tr);
+      });
+    }
+    // إضافة سؤال أو تعديله
+    document.getElementById('adminForm').onsubmit = function(e){
+      e.preventDefault();
+      const qs = getQuestions();
+      const qText = document.getElementById('adminQuestion').value.trim();
+      const opLines = document.getElementById('adminOptions').value.trim().split('\n').filter(Boolean);
+      const answerIndex = +document.getElementById('adminAnswer').value - 1;
+      if (!qText || opLines.length < 2 || answerIndex < 0 || answerIndex >= opLines.length) {
+        alert('تحقق من إدخال جميع الحقول بشكل صحيح.');
+        return;
+      }
+      const editIdx = document.getElementById('editIndex').value;
+      if (editIdx) {
+        qs[+editIdx] = { q: qText, options: opLines, answer: answerIndex };
+      } else {
+        qs.push({ q: qText, options: opLines, answer: answerIndex });
+      }
+      setQuestions(qs);
+      renderQuestionsTable();
+      resetAdminForm();
+    }
+    function editQuestion(idx) {
+      const qs = getQuestions();
+      document.getElementById('adminQuestion').value = qs[idx].q;
+      document.getElementById('adminOptions').value = qs[idx].options.join('\n');
+      document.getElementById('adminAnswer').value = qs[idx].answer+1;
+      document.getElementById('editIndex').value = idx;
+      document.getElementById('adminSaveBtn').textContent = 'حفظ التعديل';
+    }
+    function deleteQuestion(idx) {
+      if (!confirm('هل أنت متأكد من حذف هذا السؤال؟')) return;
+      const qs = getQuestions();
+      qs.splice(idx,1);
+      setQuestions(qs);
+      renderQuestionsTable();
+      resetAdminForm();
+    }
+    function resetAdminForm() {
+      document.getElementById('adminForm').reset();
+      document.getElementById('editIndex').value = '';
+      document.getElementById('adminSaveBtn').textContent = 'إضافة سؤال';
+    }
+
+    // ========== عند تحميل الصفحة ==========
+    window.addEventListener('DOMContentLoaded', ()=>{
+      // ضمان وجود أسئلة أول مرة
+      if (!localStorage.getItem('questions')) setQuestions(defaultQuestions);
+      renderResultsTable();
+      renderQuestionsTable();
+      dashboardNav.style.display = 'none';
+    });
+
+  </script>
+</body>
+</html>
